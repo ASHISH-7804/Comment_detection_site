@@ -802,7 +802,7 @@
       // Notify the automation via webhook
       fetch(webhook_url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify({
           id: newComment.id,
           username: newComment.username,
