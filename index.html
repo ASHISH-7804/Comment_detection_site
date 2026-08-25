@@ -32,6 +32,7 @@
   </main><div id="toast" class="toast" role="alert" aria-live="assertive"></div><footer><span><strong>CommentGuard</strong> · External moderation workflow demo</span><span>All demo data stays in your browser</span></footer>
   <script>
     /* (a) UI / rendering code */
+    const webhook_url = 'https://arbiter-prod-ce.cloud.automationanywhere.digital/webhook/incoming/SaVRc7GkfM7Dr0YEOBezMXUlCzMQ0DiU06vMr9ahFisLJKRlDXOxyIr86T295Ib2bGynUOekG9YraOfbGnFIL3lVgSZTrs0BFdCk0njWEsXopaTvCeZuiKnWEU25TTnI';
     const KEYS = { users: 'cg_users', comments: 'cg_comments', session: 'cg_session' };
     let authMode = 'login', lastSnapshot = '', seenFlagged = new Set(), toastTimer;
     const $ = (id) => document.getElementById(id);
