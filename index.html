@@ -781,7 +781,26 @@
 
     /* (b) Comment submission code — deliberately creates processing records only. */
     function submitComment() {
-      const text = $('commentText').value.trim(), user = getUser(); if (!text || !user || user.isSuspended) return; const comments = read(KEYS.comments, []); comments.push({ id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`, username: user.username, text, timestamp: new Date().toISOString(), status: 'processing', severity: null, reason: null }); write(KEYS.comments, comments); fetch(webhook_url, {
+      const text = $('commentText').value.trim(), user = getUser();
+      if (!text || !user || user.isSuspended) return;
+
+      const comments = read(KEYS.comments, []);
+
+      const newComment = {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+        username: user.username,
+        text,
+        timestamp: new Date().toISOString(),
+        status: 'processing',
+        severity: null,
+        reason: null
+      };
+
+      comments.push(newComment);
+      write(KEYS.comments, comments);
+
+      // Notify the automation via webhook
+      fetch(webhook_url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -790,7 +809,12 @@
           text: newComment.text,
           timestamp: newComment.timestamp
         })
-      }).catch(err => console.error('Webhook call failed:', err)); $('commentText').value = ''; $('charCount').textContent = '0 / 1000'; lastSnapshot = ''; renderDashboard();
+      }).catch(err => console.error('Webhook call failed:', err));
+
+      $('commentText').value = '';
+      $('charCount').textContent = '0 / 1000';
+      lastSnapshot = '';
+      renderDashboard();
     }
 
     /* (c) External hook functions — no UI code calls this automation integration. */
