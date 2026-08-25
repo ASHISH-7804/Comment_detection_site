@@ -1,35 +1,763 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CommentGuard — Moderation workflow demo</title>
   <style>
-    :root { --navy:#101a35; --indigo:#3848a9; --indigo-soft:#e8ebff; --ink:#19233d; --muted:#63708b; --line:#e6e9f1; --surface:#fff; --bg:#f6f8fc; --amber:#e89a18; --amber-bg:#fff7e8; --red:#c83c4c; --red-bg:#fff0f1; --green:#218364; --green-bg:#eaf8f3; --shadow:0 18px 45px rgba(19,31,67,.10); }
-    * { box-sizing:border-box; }
-    body { margin:0; color:var(--ink); background:var(--bg); font:15px/1.55 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-    button,input,textarea { font:inherit; } button { cursor:pointer; }
-    .nav { height:72px; padding:0 clamp(20px,5vw,76px); display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,.92); border-bottom:1px solid var(--line); position:sticky; top:0; z-index:5; backdrop-filter:blur(12px); }
-    .brand { display:flex; align-items:center; gap:10px; font-weight:800; font-size:20px; letter-spacing:-.5px; color:var(--navy); } .shield { width:32px; height:36px; display:grid; place-items:center; color:#fff; font-size:17px; background:linear-gradient(150deg,#5264d8,#202d77); clip-path:polygon(50% 0,94% 16%,88% 71%,50% 100%,12% 71%,6% 16%); }
-    .nav-note { color:var(--muted); font-size:13px; } .wrap { width:min(1120px,calc(100% - 40px)); margin:0 auto; }
-    .view { display:none; min-height:calc(100vh - 72px); } .view.active { display:block; }
-    .auth { padding:clamp(45px,8vw,94px) 0 70px; } .auth-grid { display:grid; grid-template-columns:1.15fr .85fr; gap:clamp(32px,7vw,90px); align-items:center; }
-    .eyebrow { color:var(--indigo); font-size:12px; font-weight:800; letter-spacing:.13em; text-transform:uppercase; } h1 { font-size:clamp(38px,5vw,64px); line-height:1.05; letter-spacing:-.055em; margin:12px 0 20px; color:var(--navy); } .hero p { color:var(--muted); max-width:540px; font-size:17px; } .feature-list { margin:30px 0 0; padding:0; list-style:none; display:grid; gap:12px; } .feature-list li { display:flex; gap:10px; align-items:center; } .tick { color:var(--green); font-weight:900; }
-    .card { background:var(--surface); border:1px solid var(--line); border-radius:18px; box-shadow:var(--shadow); } .auth-card { padding:26px; } .tabs { display:flex; background:#f0f2f8; border-radius:10px; padding:4px; margin-bottom:22px; } .tab { flex:1; border:0; background:transparent; color:var(--muted); padding:9px; border-radius:7px; font-weight:700; } .tab.active { background:#fff; color:var(--navy); box-shadow:0 2px 5px rgba(20,30,60,.08); }
-    form { display:grid; gap:15px; } label { font-size:13px; font-weight:750; color:#3e4a64; } input,textarea { width:100%; border:1px solid #d9dfeb; border-radius:9px; padding:11px 12px; color:var(--ink); background:#fff; outline:none; transition:.2s; } input:focus,textarea:focus { border-color:#6273da; box-shadow:0 0 0 3px #e4e8ff; } .form-field { display:grid; gap:6px; } .btn { border:0; border-radius:9px; padding:11px 15px; font-weight:800; transition:transform .18s,box-shadow .18s,background .18s; } .btn:hover { transform:translateY(-1px); } .btn-primary { color:#fff; background:linear-gradient(135deg,#475ad0,#2d3c96); box-shadow:0 7px 14px rgba(53,70,170,.22); } .btn-secondary { background:#eef0f7; color:var(--navy); } .btn-danger { color:#aa2637; background:#ffe9eb; } .message { min-height:22px; margin:12px 0 0; font-size:13px; color:var(--red); }
-    .dashboard { padding:34px 0 60px; } .dash-head { display:flex; justify-content:space-between; gap:20px; align-items:flex-start; margin-bottom:24px; } h2 { margin:0; color:var(--navy); font-size:28px; letter-spacing:-.03em; } .dash-head p { margin:4px 0 0; color:var(--muted); } .user-chip { white-space:nowrap; color:var(--indigo); background:var(--indigo-soft); border-radius:99px; padding:7px 12px; font-weight:700; font-size:13px; }
-    .suspension { display:none; margin-bottom:20px; padding:15px 17px; background:var(--red-bg); border:1px solid #ffc8ce; color:#8d2634; border-radius:12px; font-weight:700; } .suspension.show { display:block; } .grid { display:grid; grid-template-columns:minmax(0,1.55fr) minmax(290px,.75fr); gap:24px; align-items:start; } .composer { padding:22px; } .composer h3,.profile h3,.feed-head h3 { margin:0 0 4px; font-size:17px; color:var(--navy); } .helper { margin:0 0 15px; color:var(--muted); font-size:13px; } textarea { min-height:112px; resize:vertical; } .compose-foot { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:11px; } .count { color:var(--muted); font-size:12px; } .feed { margin-top:20px; padding:22px; } .feed-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; } .live { color:var(--green); font-size:12px; font-weight:750; } .live::before { content:""; display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--green); margin-right:5px; } .comments { display:grid; gap:12px; } .empty { border:1px dashed #cbd2e3; border-radius:10px; color:var(--muted); text-align:center; padding:28px 15px; font-size:14px; } .comment { border:1px solid var(--line); border-radius:12px; padding:15px; transition:.2s; } .comment:hover { border-color:#cbd3ed; } .comment-top { display:flex; gap:10px; justify-content:space-between; align-items:center; } .identity { display:flex; align-items:center; gap:8px; min-width:0; } .avatar { width:29px; height:29px; background:#e4e7fa; color:#3949a5; display:grid; place-items:center; border-radius:50%; font-weight:800; font-size:12px; } .username { font-weight:800; font-size:13px; } time { color:var(--muted); font-size:12px; } .comment-text { margin:11px 0; white-space:pre-wrap; overflow-wrap:anywhere; } .badge { display:inline-flex; align-items:center; max-width:100%; border-radius:99px; padding:4px 9px; font-size:12px; font-weight:750; } .processing { background:var(--amber-bg); color:#a56600; } .clean { background:var(--green-bg); color:#167257; } .flagged { background:var(--red-bg); color:#b02e3e; } .resolution { color:var(--muted); font-size:12px; margin:8px 0 0; } .reason { color:#9a3441; }
-    .profile { padding:21px; } .profile-row { display:flex; justify-content:space-between; border-bottom:1px solid var(--line); padding:11px 0; } .profile-row span { color:var(--muted); } .warning-list { padding:0; margin:14px 0; list-style:none; display:grid; gap:9px; } .warning { padding:10px; border-left:3px solid var(--red); border-radius:0 7px 7px 0; background:#fff7f7; font-size:12px; } .warning small { display:block; color:var(--muted); margin-top:3px; } .dev-panel { margin-top:24px; padding:18px 20px; border:2px dashed #bac3df; border-radius:14px; background:#fbfcff; } .dev-title { display:flex; justify-content:space-between; gap:12px; align-items:center; } .dev-title h3 { margin:0; font-size:16px; color:#2e3d8c; } .dev-panel p { margin:7px 0 14px; color:var(--muted); font-size:13px; } .dev-controls { display:none; gap:10px; align-items:end; flex-wrap:wrap; } .dev-panel.open .dev-controls { display:flex; } .dev-controls label { display:grid; gap:5px; font-size:12px; } .dev-controls select { padding:9px; border:1px solid #d9dfeb; border-radius:8px; background:#fff; } .toast { display:none; position:fixed; right:22px; bottom:22px; z-index:10; width:min(420px,calc(100% - 44px)); padding:16px 18px; border-radius:12px; background:var(--navy); color:#fff; box-shadow:0 16px 38px rgba(14,22,48,.30); } .toast.show { display:block; animation:rise .28s ease-out; } @keyframes rise { from { opacity:0; transform:translateY(10px) } to { opacity:1; transform:translateY(0) } }
-    footer { padding:22px clamp(20px,5vw,76px); background:var(--navy); color:#b8c0dc; font-size:13px; display:flex; justify-content:space-between; gap:12px; } footer strong { color:#fff; } .hidden { display:none!important; }
-    @media (max-width:800px) { .auth-grid,.grid { grid-template-columns:1fr; } .auth-grid { gap:35px; } .hero { text-align:center; } .feature-list { justify-content:center; } .dash-head { flex-direction:column; } .nav-note { display:none; } } @media (max-width:480px) { .wrap { width:min(100% - 28px,1120px); } .nav { padding:0 14px; } .compose-foot { align-items:stretch; flex-direction:column; } .compose-foot .btn { width:100%; } footer { flex-direction:column; } }
+    :root {
+      --navy: #101a35;
+      --indigo: #3848a9;
+      --indigo-soft: #e8ebff;
+      --ink: #19233d;
+      --muted: #63708b;
+      --line: #e6e9f1;
+      --surface: #fff;
+      --bg: #f6f8fc;
+      --amber: #e89a18;
+      --amber-bg: #fff7e8;
+      --red: #c83c4c;
+      --red-bg: #fff0f1;
+      --green: #218364;
+      --green-bg: #eaf8f3;
+      --shadow: 0 18px 45px rgba(19, 31, 67, .10);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--bg);
+      font: 15px/1.55 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button,
+    input,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .nav {
+      height: 72px;
+      padding: 0 clamp(20px, 5vw, 76px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255, 255, 255, .92);
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      backdrop-filter: blur(12px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 20px;
+      letter-spacing: -.5px;
+      color: var(--navy);
+    }
+
+    .shield {
+      width: 32px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-size: 17px;
+      background: linear-gradient(150deg, #5264d8, #202d77);
+      clip-path: polygon(50% 0, 94% 16%, 88% 71%, 50% 100%, 12% 71%, 6% 16%);
+    }
+
+    .nav-note {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .wrap {
+      width: min(1120px, calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    .view {
+      display: none;
+      min-height: calc(100vh - 72px);
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    .auth {
+      padding: clamp(45px, 8vw, 94px) 0 70px;
+    }
+
+    .auth-grid {
+      display: grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: clamp(32px, 7vw, 90px);
+      align-items: center;
+    }
+
+    .eyebrow {
+      color: var(--indigo);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      font-size: clamp(38px, 5vw, 64px);
+      line-height: 1.05;
+      letter-spacing: -.055em;
+      margin: 12px 0 20px;
+      color: var(--navy);
+    }
+
+    .hero p {
+      color: var(--muted);
+      max-width: 540px;
+      font-size: 17px;
+    }
+
+    .feature-list {
+      margin: 30px 0 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 12px;
+    }
+
+    .feature-list li {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .tick {
+      color: var(--green);
+      font-weight: 900;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .auth-card {
+      padding: 26px;
+    }
+
+    .tabs {
+      display: flex;
+      background: #f0f2f8;
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 22px;
+    }
+
+    .tab {
+      flex: 1;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      padding: 9px;
+      border-radius: 7px;
+      font-weight: 700;
+    }
+
+    .tab.active {
+      background: #fff;
+      color: var(--navy);
+      box-shadow: 0 2px 5px rgba(20, 30, 60, .08);
+    }
+
+    form {
+      display: grid;
+      gap: 15px;
+    }
+
+    label {
+      font-size: 13px;
+      font-weight: 750;
+      color: #3e4a64;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      border: 1px solid #d9dfeb;
+      border-radius: 9px;
+      padding: 11px 12px;
+      color: var(--ink);
+      background: #fff;
+      outline: none;
+      transition: .2s;
+    }
+
+    input:focus,
+    textarea:focus {
+      border-color: #6273da;
+      box-shadow: 0 0 0 3px #e4e8ff;
+    }
+
+    .form-field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 9px;
+      padding: 11px 15px;
+      font-weight: 800;
+      transition: transform .18s, box-shadow .18s, background .18s;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      color: #fff;
+      background: linear-gradient(135deg, #475ad0, #2d3c96);
+      box-shadow: 0 7px 14px rgba(53, 70, 170, .22);
+    }
+
+    .btn-secondary {
+      background: #eef0f7;
+      color: var(--navy);
+    }
+
+    .btn-danger {
+      color: #aa2637;
+      background: #ffe9eb;
+    }
+
+    .message {
+      min-height: 22px;
+      margin: 12px 0 0;
+      font-size: 13px;
+      color: var(--red);
+    }
+
+    .dashboard {
+      padding: 34px 0 60px;
+    }
+
+    .dash-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: flex-start;
+      margin-bottom: 24px;
+    }
+
+    h2 {
+      margin: 0;
+      color: var(--navy);
+      font-size: 28px;
+      letter-spacing: -.03em;
+    }
+
+    .dash-head p {
+      margin: 4px 0 0;
+      color: var(--muted);
+    }
+
+    .user-chip {
+      white-space: nowrap;
+      color: var(--indigo);
+      background: var(--indigo-soft);
+      border-radius: 99px;
+      padding: 7px 12px;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .suspension {
+      display: none;
+      margin-bottom: 20px;
+      padding: 15px 17px;
+      background: var(--red-bg);
+      border: 1px solid #ffc8ce;
+      color: #8d2634;
+      border-radius: 12px;
+      font-weight: 700;
+    }
+
+    .suspension.show {
+      display: block;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.55fr) minmax(290px, .75fr);
+      gap: 24px;
+      align-items: start;
+    }
+
+    .composer {
+      padding: 22px;
+    }
+
+    .composer h3,
+    .profile h3,
+    .feed-head h3 {
+      margin: 0 0 4px;
+      font-size: 17px;
+      color: var(--navy);
+    }
+
+    .helper {
+      margin: 0 0 15px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    textarea {
+      min-height: 112px;
+      resize: vertical;
+    }
+
+    .compose-foot {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-top: 11px;
+    }
+
+    .count {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .feed {
+      margin-top: 20px;
+      padding: 22px;
+    }
+
+    .feed-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .live {
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .live::before {
+      content: "";
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      margin-right: 5px;
+    }
+
+    .comments {
+      display: grid;
+      gap: 12px;
+    }
+
+    .empty {
+      border: 1px dashed #cbd2e3;
+      border-radius: 10px;
+      color: var(--muted);
+      text-align: center;
+      padding: 28px 15px;
+      font-size: 14px;
+    }
+
+    .comment {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 15px;
+      transition: .2s;
+    }
+
+    .comment:hover {
+      border-color: #cbd3ed;
+    }
+
+    .comment-top {
+      display: flex;
+      gap: 10px;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .identity {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .avatar {
+      width: 29px;
+      height: 29px;
+      background: #e4e7fa;
+      color: #3949a5;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      font-weight: 800;
+      font-size: 12px;
+    }
+
+    .username {
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    time {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .comment-text {
+      margin: 11px 0;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      max-width: 100%;
+      border-radius: 99px;
+      padding: 4px 9px;
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .processing {
+      background: var(--amber-bg);
+      color: #a56600;
+    }
+
+    .clean {
+      background: var(--green-bg);
+      color: #167257;
+    }
+
+    .flagged {
+      background: var(--red-bg);
+      color: #b02e3e;
+    }
+
+    .resolution {
+      color: var(--muted);
+      font-size: 12px;
+      margin: 8px 0 0;
+    }
+
+    .reason {
+      color: #9a3441;
+    }
+
+    .profile {
+      padding: 21px;
+    }
+
+    .profile-row {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+      padding: 11px 0;
+    }
+
+    .profile-row span {
+      color: var(--muted);
+    }
+
+    .warning-list {
+      padding: 0;
+      margin: 14px 0;
+      list-style: none;
+      display: grid;
+      gap: 9px;
+    }
+
+    .warning {
+      padding: 10px;
+      border-left: 3px solid var(--red);
+      border-radius: 0 7px 7px 0;
+      background: #fff7f7;
+      font-size: 12px;
+    }
+
+    .warning small {
+      display: block;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    .dev-panel {
+      margin-top: 24px;
+      padding: 18px 20px;
+      border: 2px dashed #bac3df;
+      border-radius: 14px;
+      background: #fbfcff;
+    }
+
+    .dev-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .dev-title h3 {
+      margin: 0;
+      font-size: 16px;
+      color: #2e3d8c;
+    }
+
+    .dev-panel p {
+      margin: 7px 0 14px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .dev-controls {
+      display: none;
+      gap: 10px;
+      align-items: end;
+      flex-wrap: wrap;
+    }
+
+    .dev-panel.open .dev-controls {
+      display: flex;
+    }
+
+    .dev-controls label {
+      display: grid;
+      gap: 5px;
+      font-size: 12px;
+    }
+
+    .dev-controls select {
+      padding: 9px;
+      border: 1px solid #d9dfeb;
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .toast {
+      display: none;
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      z-index: 10;
+      width: min(420px, calc(100% - 44px));
+      padding: 16px 18px;
+      border-radius: 12px;
+      background: var(--navy);
+      color: #fff;
+      box-shadow: 0 16px 38px rgba(14, 22, 48, .30);
+    }
+
+    .toast.show {
+      display: block;
+      animation: rise .28s ease-out;
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(10px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    footer {
+      padding: 22px clamp(20px, 5vw, 76px);
+      background: var(--navy);
+      color: #b8c0dc;
+      font-size: 13px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    footer strong {
+      color: #fff;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width:800px) {
+
+      .auth-grid,
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .auth-grid {
+        gap: 35px;
+      }
+
+      .hero {
+        text-align: center;
+      }
+
+      .feature-list {
+        justify-content: center;
+      }
+
+      .dash-head {
+        flex-direction: column;
+      }
+
+      .nav-note {
+        display: none;
+      }
+    }
+
+    @media (max-width:480px) {
+      .wrap {
+        width: min(100% - 28px, 1120px);
+      }
+
+      .nav {
+        padding: 0 14px;
+      }
+
+      .compose-foot {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .compose-foot .btn {
+        width: 100%;
+      }
+
+      footer {
+        flex-direction: column;
+      }
+    }
   </style>
 </head>
+
 <body>
-  <nav class="nav"><div class="brand"><span class="shield">✓</span> CommentGuard</div><span class="nav-note">External automation moderation workflow</span></nav>
+  <nav class="nav">
+    <div class="brand"><span class="shield">✓</span> CommentGuard</div><span class="nav-note">External automation
+      moderation workflow</span>
+  </nav>
   <main>
-    <section id="authView" class="view auth active"><div class="wrap auth-grid"><div class="hero"><div class="eyebrow">Moderation, connected</div><h1>Let your community speak with confidence.</h1><p>CommentGuard is a simple publishing space designed to connect with your own external review automation.</p><ul class="feature-list"><li><span class="tick">✓</span> Post instantly, with transparent review status</li><li><span class="tick">✓</span> Keep a clear, personal account history</li><li><span class="tick">✓</span> Automation-ready integration hook</li></ul></div><div class="card auth-card"><div class="tabs"><button class="tab active" data-mode="login">Log in</button><button class="tab" data-mode="signup">Create account</button></div><form id="authForm" novalidate><div class="form-field"><label for="authUsername">Username</label><input id="authUsername" maxlength="30" autocomplete="username" required placeholder="e.g. alexmorgan" /></div><div class="form-field"><label for="authPassword">Password</label><input id="authPassword" type="password" minlength="4" autocomplete="current-password" required placeholder="At least 4 characters" /></div><button id="authSubmit" class="btn btn-primary" type="submit">Log in</button></form><div id="authMessage" class="message" aria-live="polite"></div></div></div></section>
-    <section id="dashboardView" class="view dashboard"><div class="wrap"><div class="dash-head"><div><h2>Community feed</h2><p>Your posts are sent to the external review workflow after publishing.</p></div><span id="userChip" class="user-chip"></span></div><div id="suspension" class="suspension">Account Suspended — you have reached 3 warnings. Comment posting is disabled.</div><div class="grid"><div><section class="card composer"><h3>Share a comment</h3><p class="helper">New posts appear immediately and await a decision from the automation bot.</p><textarea id="commentText" maxlength="1000" placeholder="Write something for the community…"></textarea><div class="compose-foot"><span id="charCount" class="count">0 / 1000</span><button id="postButton" class="btn btn-primary">Post Comment</button></div></section><section class="card feed"><div class="feed-head"><h3>Live feed</h3><span class="live">Status sync active</span></div><div id="comments" class="comments"></div></section></div><aside class="card profile"><h3>Account profile</h3><div class="profile-row"><span>Signed in as</span><strong id="profileName"></strong></div><div class="profile-row"><span>Warnings</span><strong id="warningCount">0 of 3</strong></div><h3 style="margin-top:18px">Warning history</h3><ul id="warningList" class="warning-list"></ul><button id="logoutButton" class="btn btn-secondary">Log out</button><button id="resetButton" class="btn btn-danger" style="width:100%;margin-top:10px">Reset Demo Data</button></aside></div><section id="devPanel" class="dev-panel"><div class="dev-title"><h3>Developer / Bot Simulation Panel</h3><button id="devToggle" class="btn btn-secondary">Open panel</button></div><p>For testing only — real processing will be done by the automation bot.</p><div class="dev-controls"><label>Result<select id="devStatus"><option value="clean">✅ Clean</option><option value="flagged">🚩 Flagged</option></select></label><label id="severityWrap">Severity<select id="devSeverity"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select></label><label id="reasonWrap">Reason<input id="devReason" value="Manual testing result" maxlength="160" /></label><button id="simulateButton" class="btn btn-primary">Resolve newest pending comment</button></div></section></div></section>
-  </main><div id="toast" class="toast" role="alert" aria-live="assertive"></div><footer><span><strong>CommentGuard</strong> · External moderation workflow demo</span><span>All demo data stays in your browser</span></footer>
+    <section id="authView" class="view auth active">
+      <div class="wrap auth-grid">
+        <div class="hero">
+          <div class="eyebrow">Moderation, connected</div>
+          <h1>Let your community speak with confidence.</h1>
+          <p>CommentGuard is a simple publishing space designed to connect with your own external review automation.</p>
+          <ul class="feature-list">
+            <li><span class="tick">✓</span> Post instantly, with transparent review status</li>
+            <li><span class="tick">✓</span> Keep a clear, personal account history</li>
+            <li><span class="tick">✓</span> Automation-ready integration hook</li>
+          </ul>
+        </div>
+        <div class="card auth-card">
+          <div class="tabs"><button class="tab active" data-mode="login">Log in</button><button class="tab"
+              data-mode="signup">Create account</button></div>
+          <form id="authForm" novalidate>
+            <div class="form-field"><label for="authUsername">Username</label><input id="authUsername" maxlength="30"
+                autocomplete="username" required placeholder="e.g. alexmorgan" /></div>
+            <div class="form-field"><label for="authPassword">Password</label><input id="authPassword" type="password"
+                minlength="4" autocomplete="current-password" required placeholder="At least 4 characters" /></div>
+            <button id="authSubmit" class="btn btn-primary" type="submit">Log in</button>
+          </form>
+          <div id="authMessage" class="message" aria-live="polite"></div>
+        </div>
+      </div>
+    </section>
+    <section id="dashboardView" class="view dashboard">
+      <div class="wrap">
+        <div class="dash-head">
+          <div>
+            <h2>Community feed</h2>
+            <p>Your posts are sent to the external review workflow after publishing.</p>
+          </div><span id="userChip" class="user-chip"></span>
+        </div>
+        <div id="suspension" class="suspension">Account Suspended — you have reached 3 warnings. Comment posting is
+          disabled.</div>
+        <div class="grid">
+          <div>
+            <section class="card composer">
+              <h3>Share a comment</h3>
+              <p class="helper">New posts appear immediately and await a decision from the automation bot.</p><textarea
+                id="commentText" maxlength="1000" placeholder="Write something for the community…"></textarea>
+              <div class="compose-foot"><span id="charCount" class="count">0 / 1000</span><button id="postButton"
+                  class="btn btn-primary">Post Comment</button></div>
+            </section>
+            <section class="card feed">
+              <div class="feed-head">
+                <h3>Live feed</h3><span class="live">Status sync active</span>
+              </div>
+              <div id="comments" class="comments"></div>
+            </section>
+          </div>
+          <aside class="card profile">
+            <h3>Account profile</h3>
+            <div class="profile-row"><span>Signed in as</span><strong id="profileName"></strong></div>
+            <div class="profile-row"><span>Warnings</span><strong id="warningCount">0 of 3</strong></div>
+            <h3 style="margin-top:18px">Warning history</h3>
+            <ul id="warningList" class="warning-list"></ul><button id="logoutButton" class="btn btn-secondary">Log
+              out</button><button id="resetButton" class="btn btn-danger" style="width:100%;margin-top:10px">Reset Demo
+              Data</button>
+          </aside>
+        </div>
+        <section id="devPanel" class="dev-panel">
+          <div class="dev-title">
+            <h3>Developer / Bot Simulation Panel</h3><button id="devToggle" class="btn btn-secondary">Open
+              panel</button>
+          </div>
+          <p>For testing only — real processing will be done by the automation bot.</p>
+          <div class="dev-controls"><label>Result<select id="devStatus">
+                <option value="clean">✅ Clean</option>
+                <option value="flagged">🚩 Flagged</option>
+              </select></label><label id="severityWrap">Severity<select id="devSeverity">
+                <option value="low">Low</option>
+                <option value="medium" selected>Medium</option>
+                <option value="high">High</option>
+              </select></label><label id="reasonWrap">Reason<input id="devReason" value="Manual testing result"
+                maxlength="160" /></label><button id="simulateButton" class="btn btn-primary">Resolve newest pending
+              comment</button></div>
+        </section>
+      </div>
+    </section>
+  </main>
+  <div id="toast" class="toast" role="alert" aria-live="assertive"></div>
+  <footer><span><strong>CommentGuard</strong> · External moderation workflow demo</span><span>All demo data stays in
+      your browser</span></footer>
   <script>
     /* (a) UI / rendering code */
     const webhook_url = 'https://arbiter-prod-ce.cloud.automationanywhere.digital/webhook/incoming/SaVRc7GkfM7Dr0YEOBezMXUlCzMQ0DiU06vMr9ahFisLJKRlDXOxyIr86T295Ib2bGynUOekG9YraOfbGnFIL3lVgSZTrs0BFdCk0njWEsXopaTvCeZuiKnWEU25TTnI';
@@ -38,36 +766,48 @@
     const $ = (id) => document.getElementById(id);
     const read = (key, fallback) => { try { const value = JSON.parse(localStorage.getItem(key)); return value ?? fallback; } catch { return fallback; } };
     const write = (key, value) => localStorage.setItem(key, JSON.stringify(value));
-    const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;', "'":'&#39;','"':'&quot;' }[c]));
-    const dateText = (date) => new Date(date).toLocaleString([], { dateStyle:'medium', timeStyle:'short' });
+    const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c]));
+    const dateText = (date) => new Date(date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
     const currentUser = () => localStorage.getItem(KEYS.session);
     const getUser = () => read(KEYS.users, []).find(u => u.username === currentUser());
     function setView(loggedIn) { $('authView').classList.toggle('active', !loggedIn); $('dashboardView').classList.toggle('active', loggedIn); if (loggedIn) renderDashboard(); }
     function renderDashboard() { const user = getUser(); if (!user) return setView(false); $('userChip').textContent = '@' + user.username; $('profileName').textContent = '@' + user.username; $('warningCount').textContent = `${user.warningCount || 0} of 3`; $('suspension').classList.toggle('show', !!user.isSuspended); $('commentText').disabled = !!user.isSuspended; $('postButton').disabled = !!user.isSuspended; renderWarnings(user); renderFeed(); checkNewFlagged(); }
     function renderWarnings(user) { const warnings = user.warnings || []; $('warningList').innerHTML = warnings.length ? warnings.slice().reverse().map(w => `<li class="warning"><strong>${escapeHtml(w.reason || 'No reason provided')}</strong><small>${dateText(w.timestamp)}</small></li>`).join('') : '<li class="empty">No warnings on your account.</li>'; }
     function badge(comment) { if (comment.status === 'clean') return '<span class="badge clean">✅ Clean</span>'; if (comment.status === 'flagged') return '<span class="badge flagged">🚩 Flagged</span>'; return '<span class="badge processing">🔄 Awaiting bot review...</span>'; }
-    function renderFeed() { const comments = read(KEYS.comments, []).slice().sort((a,b) => new Date(b.timestamp)-new Date(a.timestamp)); $('comments').innerHTML = comments.length ? comments.map(c => `<article class="comment"><div class="comment-top"><div class="identity"><span class="avatar">${escapeHtml(c.username.charAt(0).toUpperCase())}</span><div><div class="username">@${escapeHtml(c.username)}</div><time>${dateText(c.timestamp)}</time></div></div>${badge(c)}</div><div class="comment-text">${escapeHtml(c.text)}</div>${c.status !== 'processing' ? `<p class="resolution">Reviewed ${c.resolvedAt ? dateText(c.resolvedAt) : ''}${c.status === 'flagged' && c.reason ? ` <span class="reason">· Reason: ${escapeHtml(c.reason)}</span>` : ''}</p>` : ''}</article>`).join('') : '<div class="empty">No comments yet. Start the conversation.</div>'; }
+    function renderFeed() { const comments = read(KEYS.comments, []).slice().sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)); $('comments').innerHTML = comments.length ? comments.map(c => `<article class="comment"><div class="comment-top"><div class="identity"><span class="avatar">${escapeHtml(c.username.charAt(0).toUpperCase())}</span><div><div class="username">@${escapeHtml(c.username)}</div><time>${dateText(c.timestamp)}</time></div></div>${badge(c)}</div><div class="comment-text">${escapeHtml(c.text)}</div>${c.status !== 'processing' ? `<p class="resolution">Reviewed ${c.resolvedAt ? dateText(c.resolvedAt) : ''}${c.status === 'flagged' && c.reason ? ` <span class="reason">· Reason: ${escapeHtml(c.reason)}</span>` : ''}</p>` : ''}</article>`).join('') : '<div class="empty">No comments yet. Start the conversation.</div>'; }
     function showToast(message) { $('toast').textContent = message; $('toast').classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => $('toast').classList.remove('show'), 6500); }
     function checkNewFlagged() { const user = currentUser(); if (!user) return; read(KEYS.comments, []).filter(c => c.username === user && c.status === 'flagged').forEach(c => { if (!seenFlagged.has(c.id)) { seenFlagged.add(c.id); const account = getUser(); showToast(`⚠️ Your comment was just flagged as inappropriate. Warning ${account?.warningCount || 0} of 3. Reason: ${c.reason || 'No reason provided'}`); } }); }
     function sync() { if (!currentUser()) return; const snapshot = localStorage.getItem(KEYS.comments) || '[]'; if (snapshot !== lastSnapshot) { lastSnapshot = snapshot; renderDashboard(); } else { const userSnapshot = JSON.stringify(getUser()); if (userSnapshot !== window._cgUserSnapshot) { window._cgUserSnapshot = userSnapshot; renderDashboard(); } } }
 
     /* (b) Comment submission code — deliberately creates processing records only. */
-    function submitComment() { const text = $('commentText').value.trim(), user = getUser(); if (!text || !user || user.isSuspended) return; const comments = read(KEYS.comments, []); comments.push({ id: `${Date.now()}-${Math.random().toString(36).slice(2,9)}`, username:user.username, text, timestamp:new Date().toISOString(), status:'processing', severity:null, reason:null }); write(KEYS.comments, comments); $('commentText').value = ''; $('charCount').textContent = '0 / 1000'; lastSnapshot = ''; renderDashboard(); }
+    function submitComment() {
+      const text = $('commentText').value.trim(), user = getUser(); if (!text || !user || user.isSuspended) return; const comments = read(KEYS.comments, []); comments.push({ id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`, username: user.username, text, timestamp: new Date().toISOString(), status: 'processing', severity: null, reason: null }); write(KEYS.comments, comments); fetch(webhook_url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: newComment.id,
+          username: newComment.username,
+          text: newComment.text,
+          timestamp: newComment.timestamp
+        })
+      }).catch(err => console.error('Webhook call failed:', err)); $('commentText').value = ''; $('charCount').textContent = '0 / 1000'; lastSnapshot = ''; renderDashboard();
+    }
 
     /* (c) External hook functions — no UI code calls this automation integration. */
     // Called externally by the automation bot after it finishes classifying a comment. Do not call this from site UI code.
-    window.resolveComment = function(commentId, status, severity, reason) { const comments = read(KEYS.comments, []), comment = comments.find(c => c.id === commentId); if (!comment || !['clean','flagged'].includes(status)) return false; const wasFlagged = comment.status === 'flagged'; comment.status = status; comment.severity = severity || null; comment.reason = reason || null; comment.resolvedAt = new Date().toISOString(); write(KEYS.comments, comments); if (status === 'flagged' && !wasFlagged) { const users = read(KEYS.users, []), account = users.find(u => u.username === comment.username); if (account) { account.warnings = Array.isArray(account.warnings) ? account.warnings : []; account.warnings.push({ commentText:comment.text, reason:comment.reason, timestamp:comment.resolvedAt }); account.warningCount = (account.warningCount || 0) + 1; account.isSuspended = account.warningCount >= 3; write(KEYS.users, users); } } return true; };
-    window.getProcessingComments = function() { return JSON.stringify(read(KEYS.comments, []).filter(c => c.status === 'processing')); };
+    window.resolveComment = function (commentId, status, severity, reason) { const comments = read(KEYS.comments, []), comment = comments.find(c => c.id === commentId); if (!comment || !['clean', 'flagged'].includes(status)) return false; const wasFlagged = comment.status === 'flagged'; comment.status = status; comment.severity = severity || null; comment.reason = reason || null; comment.resolvedAt = new Date().toISOString(); write(KEYS.comments, comments); if (status === 'flagged' && !wasFlagged) { const users = read(KEYS.users, []), account = users.find(u => u.username === comment.username); if (account) { account.warnings = Array.isArray(account.warnings) ? account.warnings : []; account.warnings.push({ commentText: comment.text, reason: comment.reason, timestamp: comment.resolvedAt }); account.warningCount = (account.warningCount || 0) + 1; account.isSuspended = account.warningCount >= 3; write(KEYS.users, users); } } return true; };
+    window.getProcessingComments = function () { return JSON.stringify(read(KEYS.comments, []).filter(c => c.status === 'processing')); };
 
     /* (d) Dev testing panel — standalone test harness for the external hook. */
     /* (d) Dev testing panel — standalone test harness for the external hook. */
     $('devToggle').addEventListener('click', () => { $('devPanel').classList.toggle('open'); $('devToggle').textContent = $('devPanel').classList.contains('open') ? 'Close panel' : 'Open panel'; });
-    $('simulateButton').addEventListener('click', () => { const pending = read(KEYS.comments, []).filter(c => c.status === 'processing').sort((a,b) => new Date(b.timestamp)-new Date(a.timestamp))[0]; if (!pending) return showToast('There are no pending comments to resolve.'); const status = $('devStatus').value; window.resolveComment(pending.id, status, status === 'flagged' ? $('devSeverity').value : null, status === 'flagged' ? $('devReason').value.trim() || 'Manual testing result' : null); lastSnapshot = ''; renderDashboard(); });
+    $('simulateButton').addEventListener('click', () => { const pending = read(KEYS.comments, []).filter(c => c.status === 'processing').sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0]; if (!pending) return showToast('There are no pending comments to resolve.'); const status = $('devStatus').value; window.resolveComment(pending.id, status, status === 'flagged' ? $('devSeverity').value : null, status === 'flagged' ? $('devReason').value.trim() || 'Manual testing result' : null); lastSnapshot = ''; renderDashboard(); });
     $('devStatus').addEventListener('change', () => { const flagged = $('devStatus').value === 'flagged'; $('severityWrap').classList.toggle('hidden', !flagged); $('reasonWrap').classList.toggle('hidden', !flagged); });
     document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => { authMode = tab.dataset.mode; document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t === tab)); $('authSubmit').textContent = authMode === 'login' ? 'Log in' : 'Create account'; $('authMessage').textContent = ''; $('authPassword').autocomplete = authMode === 'login' ? 'current-password' : 'new-password'; }));
-    $('authForm').addEventListener('submit', e => { e.preventDefault(); const username = $('authUsername').value.trim(), password = $('authPassword').value; if (username.length < 3 || password.length < 4) return $('authMessage').textContent = 'Use a username of 3+ characters and a password of 4+ characters.'; const users = read(KEYS.users, []), existing = users.find(u => u.username.toLowerCase() === username.toLowerCase()); if (authMode === 'signup') { if (existing) return $('authMessage').textContent = 'That username is already taken.'; users.push({ username, password, warningCount:0, isSuspended:false, warnings:[] }); write(KEYS.users, users); } else if (!existing || existing.password !== password) return $('authMessage').textContent = 'Username or password is incorrect.'; localStorage.setItem(KEYS.session, authMode === 'signup' ? username : existing.username); seenFlagged = new Set(); lastSnapshot = ''; setView(true); });
+    $('authForm').addEventListener('submit', e => { e.preventDefault(); const username = $('authUsername').value.trim(), password = $('authPassword').value; if (username.length < 3 || password.length < 4) return $('authMessage').textContent = 'Use a username of 3+ characters and a password of 4+ characters.'; const users = read(KEYS.users, []), existing = users.find(u => u.username.toLowerCase() === username.toLowerCase()); if (authMode === 'signup') { if (existing) return $('authMessage').textContent = 'That username is already taken.'; users.push({ username, password, warningCount: 0, isSuspended: false, warnings: [] }); write(KEYS.users, users); } else if (!existing || existing.password !== password) return $('authMessage').textContent = 'Username or password is incorrect.'; localStorage.setItem(KEYS.session, authMode === 'signup' ? username : existing.username); seenFlagged = new Set(); lastSnapshot = ''; setView(true); });
     $('postButton').addEventListener('click', submitComment); $('commentText').addEventListener('input', () => $('charCount').textContent = `${$('commentText').value.length} / 1000`); $('logoutButton').addEventListener('click', () => { localStorage.removeItem(KEYS.session); $('commentText').value = ''; setView(false); }); $('resetButton').addEventListener('click', () => { if (confirm('Clear all CommentGuard demo data from this browser?')) { Object.values(KEYS).forEach(k => localStorage.removeItem(k)); seenFlagged = new Set(); setView(false); } });
     setInterval(sync, 1500); if (currentUser() && getUser()) { lastSnapshot = localStorage.getItem(KEYS.comments) || '[]'; setView(true); } else { localStorage.removeItem(KEYS.session); }
   </script>
 </body>
+
 </html>
