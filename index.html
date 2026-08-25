@@ -60,6 +60,7 @@
     window.getProcessingComments = function() { return JSON.stringify(read(KEYS.comments, []).filter(c => c.status === 'processing')); };
 
     /* (d) Dev testing panel — standalone test harness for the external hook. */
+    /* (d) Dev testing panel — standalone test harness for the external hook. */
     $('devToggle').addEventListener('click', () => { $('devPanel').classList.toggle('open'); $('devToggle').textContent = $('devPanel').classList.contains('open') ? 'Close panel' : 'Open panel'; });
     $('simulateButton').addEventListener('click', () => { const pending = read(KEYS.comments, []).filter(c => c.status === 'processing').sort((a,b) => new Date(b.timestamp)-new Date(a.timestamp))[0]; if (!pending) return showToast('There are no pending comments to resolve.'); const status = $('devStatus').value; window.resolveComment(pending.id, status, status === 'flagged' ? $('devSeverity').value : null, status === 'flagged' ? $('devReason').value.trim() || 'Manual testing result' : null); lastSnapshot = ''; renderDashboard(); });
     $('devStatus').addEventListener('change', () => { const flagged = $('devStatus').value === 'flagged'; $('severityWrap').classList.toggle('hidden', !flagged); $('reasonWrap').classList.toggle('hidden', !flagged); });
